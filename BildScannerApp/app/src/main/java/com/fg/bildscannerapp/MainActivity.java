@@ -13,6 +13,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
@@ -32,6 +33,7 @@ import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -39,10 +41,12 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private static String TAG = "MainActivity";
 
 
-    JavaCameraView javaCameraView;
+    Zoomcameraview javaCameraView;
     Mat mGrayCannyTest;
     TesseractHelper tessHelper;
     OpenCVHelper openCVHelper;
+
+    ArrayList<Rect> rects = new ArrayList<>();
 
 
 
@@ -77,9 +81,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},
                 1);
 
-        javaCameraView = (JavaCameraView) findViewById(R.id.opencv_camera_view);
+        javaCameraView = (Zoomcameraview) findViewById(R.id.opencv_camera_view);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
+        javaCameraView.setZoomControl((SeekBar) findViewById(R.id.camera_zoom_controls));
         javaCameraView.setCvCameraViewListener(MainActivity.this);
+
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -99,15 +105,20 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 scanButton.setClickable(false);
                 new Thread(new Runnable() {
                     public void run() {
-                        Bitmap b = Bitmap.createBitmap(mGrayCannyTest.width(), mGrayCannyTest.height(), Bitmap.Config.ARGB_8888);
-                        Utils.matToBitmap(mGrayCannyTest, b);
-                        String result = tessHelper.startOCR(b);
+                        //Bitmap b = Bitmap.createBitmap(mGrayCannyTest.width(), mGrayCannyTest.height(), Bitmap.Config.ARGB_8888);
+                        //Utils.matToBitmap(mGrayCannyTest, b);
+                        //String result = tessHelper.startOCR(b);
+                        rects = openCVHelper.getRectAroundLicense(mGrayCannyTest);
+                        while(rects.size() == 0){
+                            rects = openCVHelper.getRectAroundLicense(mGrayCannyTest);
+                        }
+
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                scanButton.setText("Analysieren");
+                                scanButton.setText("Finde Kennzeichen");
                                 scanButton.setClickable(true);
-                                displayResult.setText(result);
+                                displayResult.setText("result");
                             }
                         });
                     }
@@ -130,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         System.gc(); // TODO May be unnecessary
-        mGrayCannyTest.release();
+        //mGrayCannyTest.release();
 
         mGrayCannyTest = inputFrame.rgba();
 
@@ -140,10 +151,12 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         //TODO implement maybe click feature, so the user can specify area
 
-        Rect r = openCVHelper.getRectAroundLicense(inputFrame.gray(), mGrayCannyTest);
-        Point p1 = new Point(r.x, r.y);
-        Point p2 = new Point(r.x + r.width, r.y + r.height);
-        Imgproc.rectangle(mGrayCannyTest, p1, p2, new Scalar(0, 0, 255), 2);
+        for (Rect r : rects){
+            Point p1 = new Point(r.x, r.y);
+            Point p2 = new Point(r.x + r.width, r.y + r.height);
+            Imgproc.rectangle(mGrayCannyTest, p1, p2, new Scalar(0, 0, 255), 2);
+        }
+
 
         return mGrayCannyTest;
     }

@@ -22,7 +22,10 @@ public class OpenCVHelper {
 
     }
 
-    public Rect getRectAroundLicense(Mat imageToProcessGray, Mat rgbImage){
+    public ArrayList<Rect> getRectAroundLicense(Mat imageToProcess){
+
+        Mat imageToProcessGray = new Mat();
+        Imgproc.cvtColor(imageToProcess, imageToProcessGray, Imgproc.COLOR_RGB2GRAY);
 
         Mat bilateral = new Mat();
         Imgproc.bilateralFilter(imageToProcessGray, bilateral, 13, 75, 25);
@@ -30,8 +33,9 @@ public class OpenCVHelper {
         Mat edges = new Mat();
         Imgproc.Canny(imageToProcessGray, edges, 30, 200);
 
-        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(1, 1));
-        Imgproc.dilate(edges, edges, kernel);
+        //TODO dont forget release wenn auskommentiert
+        //Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(1, 1));
+        //Imgproc.dilate(edges, edges, kernel);
 
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat(); // TODO delete/release directly because unnecessary
@@ -48,6 +52,8 @@ public class OpenCVHelper {
 
                 }
             });
+
+            contours = contours.subList(0, 5);
         } catch (Exception e){
             Log.e("LOL", "Nerviger comparison error");
         }
@@ -55,9 +61,9 @@ public class OpenCVHelper {
         // release unnecessary
         bilateral.release();
         edges.release();
-        kernel.release();
+        //kernel.release();
 
-        Rect rectLicense = new Rect();
+        ArrayList<Rect> rectLicense = new ArrayList<>();
         double angle = 0;
         for (MatOfPoint contour : contours){
             MatOfPoint2f approx = new MatOfPoint2f();
@@ -69,10 +75,11 @@ public class OpenCVHelper {
             double acc = 0.018;
             Imgproc.approxPolyDP(c, approx, acc*peri, true);
             if(approx.total() == 4) {
-                rectLicense = Imgproc.boundingRect(contour);
-                if ((rectLicense.width > rectLicense.height) && (rectLicense.width/rectLicense.height) == 4 && rectLicense.area() > 7500 && rectLicense.area() < 40000){
-                    Log.d("LOL", "ratio: " + rectLicense.width*1.0/rectLicense.height);
-                    Log.d("LOL", "area: " + rectLicense.area());
+                if ((Imgproc.boundingRect(contour).width > Imgproc.boundingRect(contour).height) && Imgproc.boundingRect(contour).area() > 7500 && Imgproc.boundingRect(contour).area() < 40000){
+                    rectLicense.add(Imgproc.boundingRect(contour));
+                    Log.d("LOL", "ratio: " + Imgproc.boundingRect(contour).width*1.0/Imgproc.boundingRect(contour).height);
+                    Log.d("LOL", "area: " + Imgproc.boundingRect(contour).area());
+                    Log.d("LOL", "index: " + contours.indexOf(contour));
                     angle = Imgproc.minAreaRect(c).angle;
                     break;
                 }
