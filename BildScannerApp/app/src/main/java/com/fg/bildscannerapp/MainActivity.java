@@ -24,6 +24,9 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.w3c.dom.Text;
 
@@ -39,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     JavaCameraView javaCameraView;
     Mat mGrayCannyTest;
     TesseractHelper tessHelper;
+    OpenCVHelper openCVHelper;
 
 
 
@@ -82,7 +86,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         AssetManager assetManager = getAssets();
 
         tessHelper = new TesseractHelper(assetManager, getWindow().getContext().getFilesDir());
+        openCVHelper = new OpenCVHelper();
 
+        // UI
         TextView displayResult = (TextView) findViewById(R.id.displayResult);
         Button scanButton = (Button) findViewById(R.id.button_scan);
         scanButton.setOnClickListener(new View.OnClickListener() {
@@ -126,10 +132,18 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         System.gc(); // TODO May be unnecessary
         mGrayCannyTest.release();
 
-        mGrayCannyTest = inputFrame.gray();
+        mGrayCannyTest = inputFrame.rgba();
 
+        //TODO license plate recognition
         //Imgproc.adaptiveThreshold(mGrayCannyTest, mGrayCannyTest, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 53, 34);
         //Imgproc.Canny(mGrayCannyTest, mGrayCannyTest, 60, 60*3);
+
+        //TODO implement maybe click feature, so the user can specify area
+
+        Rect r = openCVHelper.getRectAroundLicense(inputFrame.gray(), mGrayCannyTest);
+        Point p1 = new Point(r.x, r.y);
+        Point p2 = new Point(r.x + r.width, r.y + r.height);
+        Imgproc.rectangle(mGrayCannyTest, p1, p2, new Scalar(0, 0, 255), 2);
 
         return mGrayCannyTest;
     }

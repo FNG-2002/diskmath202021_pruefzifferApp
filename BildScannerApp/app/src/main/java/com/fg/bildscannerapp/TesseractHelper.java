@@ -17,7 +17,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class TesseractHelper extends AppCompatActivity {
+public class TesseractHelper {
 
     public static final String TAG = "TESSERACTHELPER";
 
