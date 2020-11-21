@@ -41,14 +41,14 @@
 
     <SeekBar
         android:id="@+id/camera_zoom_controls"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="602dp"
+        android:layout_height="22dp"
         android:layout_alignBottom="@+id/opencv_camera_view"
         android:layout_centerInParent="true"
         android:rotation="-90"
-        android:translationX="-150pt"
-        android:translationY="5pt"
+        android:translationX="-70pt"
+        android:translationY="20pt"
         tools:layout_editor_absoluteX="-110dp"
-        tools:layout_editor_absoluteY="28dp" />
+        tools:layout_editor_absoluteY="36dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

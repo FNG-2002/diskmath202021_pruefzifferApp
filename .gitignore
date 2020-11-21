@@ -88,5 +88,5 @@ lint/tmp/
 *.hprof
 
 #OpenCV
-openCVLibrary3412/
-jniLibs/
+#openCVLibrary3412/
+#jniLibs/
