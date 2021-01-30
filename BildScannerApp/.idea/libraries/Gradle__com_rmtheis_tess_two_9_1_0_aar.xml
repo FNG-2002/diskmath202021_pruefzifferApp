@@ -2,11 +2,15 @@
   <library name="Gradle: com.rmtheis:tess-two:9.1.0@aar">
     <ANNOTATIONS>
       <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3929de7d63d5ade94e7f382c952cf2d8/jetified-tess-two-9.1.0/annotations.zip!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3b865cde18f424c42e5dd77b1ca7f0b3/jetified-tess-two-9.1.0/annotations.zip!/" />
     </ANNOTATIONS>
     <CLASSES>
       <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3929de7d63d5ade94e7f382c952cf2d8/jetified-tess-two-9.1.0/jars/classes.jar!/" />
       <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3929de7d63d5ade94e7f382c952cf2d8/jetified-tess-two-9.1.0/res" />
       <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3929de7d63d5ade94e7f382c952cf2d8/jetified-tess-two-9.1.0/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3b865cde18f424c42e5dd77b1ca7f0b3/jetified-tess-two-9.1.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3b865cde18f424c42e5dd77b1ca7f0b3/jetified-tess-two-9.1.0/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3b865cde18f424c42e5dd77b1ca7f0b3/jetified-tess-two-9.1.0/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.rmtheis/tess-two/9.1.0/9115650e48cae25cf38414fba31551d15261906f/tess-two-9.1.0-javadoc.jar!/" />

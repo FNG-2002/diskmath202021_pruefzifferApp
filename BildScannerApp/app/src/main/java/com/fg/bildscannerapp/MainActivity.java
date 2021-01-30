@@ -1,8 +1,5 @@
 package com.fg.bildscannerapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -15,6 +12,10 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 
@@ -33,7 +34,9 @@ import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -46,8 +49,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     TesseractHelper tessHelper;
     OpenCVHelper openCVHelper;
 
-    ArrayList<Rect> rects = new ArrayList<>();
+    boolean doOnce = false;
 
+    ArrayList<Rect> rects = new ArrayList<>();
+    TextView displayResult;
 
 
     BaseLoaderCallback baseLoaderCallback = new BaseLoaderCallback(MainActivity.this) {
@@ -95,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         openCVHelper = new OpenCVHelper();
 
         // UI
-        TextView displayResult = (TextView) findViewById(R.id.displayResult);
+        displayResult = (TextView) findViewById(R.id.displayResult);
         Button scanButton = (Button) findViewById(R.id.button_scan);
         scanButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,13 +117,15 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                         while(rects.size() == 0){
                             rects = openCVHelper.getRectAroundLicense(mGrayCannyTest);
                         }
+                        rects.subList(1,rects.size());
+                        doOnce = true;
 
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 scanButton.setText("Finde Kennzeichen");
                                 scanButton.setClickable(true);
-                                displayResult.setText("result");
+                                //displayResult.setText("test");
                             }
                         });
                     }
@@ -130,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-        mGrayCannyTest = new Mat(height, width, CvType.CV_8UC4);
+        mGrayCannyTest = new Mat(height, width, CvType.CV_8UC1);
     }
 
     @Override
@@ -145,21 +152,84 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         mGrayCannyTest = inputFrame.rgba();
 
-        //TODO license plate recognition
-        //Imgproc.adaptiveThreshold(mGrayCannyTest, mGrayCannyTest, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 53, 34);
-        //Imgproc.Canny(mGrayCannyTest, mGrayCannyTest, 60, 60*3);
-
         //TODO implement maybe click feature, so the user can specify area
 
-        for (Rect r : rects){
+        if (doOnce) {
+            Rect r = rects.get(0);
             Point p1 = new Point(r.x, r.y);
             Point p2 = new Point(r.x + r.width, r.y + r.height);
-            Imgproc.rectangle(mGrayCannyTest, p1, p2, new Scalar(0, 0, 255), 2);
+            //Imgproc.rectangle(mGrayCannyTest, p1, p2, new Scalar(0, 0, 255), 2);
+
+
+            //TODO license plate recognition
+            Mat thresh = new Mat();
+            Imgproc.cvtColor(mGrayCannyTest, thresh, Imgproc.COLOR_RGB2GRAY);
+            Imgproc.adaptiveThreshold(thresh, thresh, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 33, 40);
+
+            Mat cropped = new Mat(thresh, r);
+
+            Bitmap analyzed2 = Bitmap.createBitmap(cropped.cols(), cropped.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(cropped, analyzed2);
+
+            saveTempImage(analyzed2);
+
+            String result = tessHelper.startOCR(analyzed2);
+            Log.d("TEST2", result);
+            displayResult.setText(result);
+
+            doOnce = false;
+
+    }
+        return mGrayCannyTest;
+
+    }
+
+    /*------------------------------------ Store Image -------------------------------------------*/
+    public void saveTempImage(Bitmap bitmap) {
+        if (isExternalStorageWritable()) {
+            saveImage(bitmap);
+        }else{
+            Toast.makeText(this, "Please provide permission to write on the Storage!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveImage(Bitmap finalBitmap) {
+
+        String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+        Log.d("TEST2", root);
+        File myDir = new File(root + "/sams_images");
+
+        if (! myDir.exists()){
+            myDir.mkdir();
+            // If you require it to make the entire directory path including parents,
+            // use directory.mkdirs(); here instead.
         }
 
+        String  timeStamp = new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
+        String fname = timeStamp +".jpg";
 
-        return mGrayCannyTest;
+        File file = new File(myDir, fname);
+        if (file.exists()) file.delete ();
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+    /*------------------------------------ ************* -----------------------------------------*/
 
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {

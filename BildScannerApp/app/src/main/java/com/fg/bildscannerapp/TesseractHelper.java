@@ -45,7 +45,7 @@ public class TesseractHelper {
             String[] fileList = a.list("");
             for (String fileName : fileList){
                 String pathToData = DATA_PATH+TESS_DATA+"/"+fileName;
-
+                Log.d("TEST2", pathToData);
                 if(!(new File(pathToData)).exists()){
                     InputStream in = a.open(fileName);
                     OutputStream out = new FileOutputStream(pathToData);
@@ -73,6 +73,7 @@ public class TesseractHelper {
         }
         tessBaseAPI.init(DATA_PATH, "deu");
         //tessBaseAPI.setVariable("tessedit_char_whitelist", " -@.abcdefghijklmnopqrstuvwxyzäöüÄÖÜABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+        tessBaseAPI.setVariable("tessedit_char_whitelist", " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
         tessBaseAPI.setImage(image);
 
         String result = "Bisher kein Ergebnis";
